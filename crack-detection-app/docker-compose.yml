@@ -11,7 +11,7 @@ services:
       - "8000:8000"
     volumes:
       # Mount model directories (adjust paths as needed)
-      - /media/dev/Data/aihub_building_defect/workspace:/models:ro
+      # - /media/dev/Data/aihub_building_defect/workspace:/models:ro
       # Persistent data
       - ./data/uploads:/app/uploads
       - ./data/outputs:/app/outputs
