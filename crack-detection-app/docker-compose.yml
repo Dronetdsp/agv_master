@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Backend service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crack-detection-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount model directories (adjust paths as needed)
+      - /media/dev/Data/aihub_building_defect/workspace:/models:ro
+      # Persistent data
+      - ./data/uploads:/app/uploads
+      - ./data/outputs:/app/outputs
+      - ./data/user_preferences:/app/user_preferences
+    environment:
+      - DEBUG=false
+      - DEFAULT_CRACK_MODEL=/models/yolov8s_crack_seg4/weights/best.pt
+      - DEFAULT_DET_MODEL=/models/merged_unified6_a10012/weights/best.pt
+    restart: unless-stopped
+    networks:
+      - crack-detection-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: crack-detection-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - crack-detection-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+networks:
+  crack-detection-network:
+    driver: bridge
+
+volumes:
+  uploads:
+  outputs:
+  user_preferences:
